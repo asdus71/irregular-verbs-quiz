@@ -1,167 +1,347 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Irregular Verbs — Simple Past Übung</title>
-  <style>
-    body{font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial; margin:0; background:#0f1724; color:#e6eef8; display:flex; flex-direction:column; align-items:center; min-height:100vh; padding:20px;}
-    .card{background:#0b1220;border-radius:12px;padding:24px;box-shadow:0 6px 18px rgba(2,6,23,0.6);width:420px;}
-    h1{margin-top:0;font-size:22px;text-align:center;}
-    .inf{font-size:28px;font-weight:700;text-align:center;margin:12px 0;}
-    .progress{text-align:center;color:#94a3b8;margin-bottom:16px;}
-    .input-row{display:flex;gap:8px;margin-bottom:8px;}
-    input{flex:1;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);background:transparent;color:inherit;}
-    button,select{background:#7dd3fc;border:none;padding:8px 12px;border-radius:8px;font-weight:600;cursor:pointer;color:#000;}
-    .feedback{text-align:center;margin-top:8px;min-height:22px;font-weight:600;}
-    .correct{color:#10b981;}
-    .wrong{color:#ef4444;}
-    .stats{text-align:center;margin-top:16px;color:#94a3b8;font-size:14px;}
-    .setup{display:flex;justify-content:center;align-items:center;gap:8px;margin-top:12px;}
-    .summary-card{background:#16203a;border-radius:12px;padding:20px;margin-top:24px;box-shadow:0 6px 18px rgba(2,6,23,0.6);width:420px;text-align:center;}
-    .summary-card h2{margin:0 0 12px 0;font-size:20px;}
-    .summary-card p{margin:6px 0;}
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Unregelmäßige Verben Quiz</title>
+<style>
+  body {font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, Arial; background: #0f1724; color: #e6eef8; display:flex; flex-direction:column; align-items:center; padding:24px;}
+  .card{background:#0b1220;padding:20px;border-radius:12px;box-shadow:0 6px 18px rgba(2,6,23,0.6);width:520px;max-width:95%;}
+  h1{margin:0 0 8px 0;font-size:20px;text-align:center}
+  .prompt{font-size:18px;font-weight:700;text-align:center;margin:14px 0}
+  .de-word{font-size:26px;text-align:center;color:#cbd5e1;margin-bottom:8px}
+  .input-row{display:flex;gap:8px;justify-content:center}
+  input{padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.06);background:transparent;color:inherit;min-width:220px}
+  button, select{background:#7dd3fc;border:none;padding:8px 12px;border-radius:8px;font-weight:600;cursor:pointer;color:#000}
+  .feedback{min-height:28px;text-align:center;margin-top:10px;font-weight:700}
+  .correct{color:#10b981}
+  .wrong{color:#ef4444}
+  .right-answer{color:#10b981;font-weight:800}
+  .stats{color:#94a3b8;margin-top:10px;text-align:center}
+  .summary-card{background:#16203a;border-radius:12px;padding:18px;margin-top:20px;box-shadow:0 6px 18px rgba(2,6,23,0.6);width:520px;max-width:95%;text-align:center}
+  .controls{display:flex;gap:8px;align-items:center;justify-content:center;margin-top:12px}
+  label.small{color:#94a3b8;font-size:13px}
+</style>
 </head>
 <body>
   <div class="card" id="quizCard">
-    <h1>Irregular Verbs — Übung</h1>
-    <div class="inf" id="infinitive">—</div>
-    <div class="progress" id="progress">0 / 0</div>
-    <div class="input-row">
-      <input id="answerInput" type="text" placeholder="Simple Past eingeben" autocomplete="off" disabled>
-      <button id="submitBtn" disabled>OK</button>
-    </div>
-    <div class="feedback" id="feedback"></div>
-    <div class="stats">
-      Richtige: <span id="correctCount">0</span> · Falsche: <span id="wrongCount">0</span> · Beantwortet: <span id="answeredCount">0</span>
-    </div>
-    <div class="setup">
-      <label for="verbCount">Verben pro Runde:</label>
-      <select id="verbCount">
-        <option value="10">10</option>
-        <option value="20">20</option>
-        <option value="50">50</option>
-        <option value="100">100</option>
-      </select>
+    <h1>Unregelmäßige Verben — Deutsch → Englisch</h1>
+    <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin-top:8px">
+      <label class="small">Verben pro Runde:
+        <select id="verbCount">
+          <option value="10">10</option>
+          <option value="20">20</option>
+          <option value="50">50</option>
+          <option value="100">100</option>
+        </select>
+      </label>
+      <label class="small">Abfrage-Formen:
+        <select id="modeSelect">
+          <option value="past">Infinitiv → Simple Past</option>
+          <option value="part">Infinitiv → Past Participle</option>
+          <option value="both">Infinitiv → Simple Past → Past Participle</option>
+        </select>
+      </label>
       <button id="startBtn">Start</button>
+    </div>
+
+    <div style="margin-top:16px">
+      <div class="de-word" id="deWord">—</div>
+      <div class="prompt" id="promptText">Bitte das englische Infinitiv eingeben</div>
+      <div class="input-row">
+        <input id="answerInput" type="text" autocomplete="off" disabled />
+        <button id="okBtn" disabled>OK</button>
+      </div>
+      <div class="feedback" id="feedback"></div>
+      <div class="stats" id="stats">Richtig: <span id="correctCount">0</span> · Falsch: <span id="wrongCount">0</span> · Beantwortet: <span id="answeredCount">0</span></div>
     </div>
   </div>
 
-  <div class="summary-card" id="summaryCard" style="display:none;">
+  <div class="summary-card" id="summaryCard" style="display:none">
     <h2>Auswertung</h2>
     <p id="summaryResult"></p>
     <p id="summaryComment"></p>
-    <button id="restartBtn">Neue Runde starten</button>
+    <div style="margin-top:12px"><button id="restartBtn">Neue Runde starten</button></div>
   </div>
 
-  <script>
-    const verbs = [
-      ['be','was / were'],['become','became'],['begin','began'],['bite','bit'],['blow','blew'],
-      ['break','broke'],['bring','brought'],['build','built'],['buy','bought'],['catch','caught'],
-      ['choose','chose'],['come','came'],['cost','cost'],['cut','cut'],['deal','dealt'],['dig','dug'],
-      ['do','did'],['draw','drew'],['drink','drank'],['drive','drove'],['eat','ate'],['fall','fell'],
-      ['feed','fed'],['feel','felt'],['fight','fought'],['find','found'],['fly','flew'],['forget','forgot'],
-      ['forgive','forgave'],['freeze','froze'],['get','got'],['give','gave'],['go','went'],['grow','grew'],
-      ['hang','hung'],['have','had'],['hear','heard'],['hide','hid'],['hit','hit'],['hold','held'],['hurt','hurt'],
-      ['keep','kept'],['know','knew'],['learn','learnt / learned'],['leave','left'],['lend','lent'],['let','let'],
-      ['lie (liegen)','lay'],['lose','lost'],['make','made'],['mean','meant'],['meet','met'],['pay','paid'],
-      ['put','put'],['read','read'],['ride','rode'],['ring','rang'],['rise','rose'],['run','ran'],['say','said'],
-      ['see','saw'],['sell','sold'],['send','sent'],['set','set'],['shake','shook'],['shine','shone'],
-      ['shoot','shot'],['show','showed'],['shut','shut'],['sing','sang'],['sit','sat'],['sleep','slept'],
-      ['speak','spoke'],['spend','spent'],['stand','stood'],['steal','stole'],['swim','swam'],['take','took'],
-      ['teach','taught'],['tell','told'],['think','thought'],['throw','threw'],['understand','understood'],
-      ['wake','woke'],['wear','wore'],['win','won'],['write','wrote'],['bet','bet'],['bleed','bled'],
-      ['dream','dreamt / dreamed'],['light','lit / lighted'],['smell','smelt / smelled'],['spell','spelt / spelled'],
-      ['spill','spilled / spilt'],['cling','clung']
-    ];
+<script>
+// Daten: de = Deutsch, inf = Infinitiv, past = Simple Past, part = Past Participle
+const verbs = [
+  {de: "sein", inf: "be", past: "was/were", part: "been"},
+  {de: "schlagen, besiegen", inf: "beat", past: "beat", part: "beaten"},
+  {de: "werden", inf: "become", past: "became", part: "become"},
+  {de: "beginnen, anfangen", inf: "begin", past: "began", part: "begun"},
+  {de: "wetten", inf: "bet", past: "bet", part: "bet"},
+  {de: "beißen", inf: "bite", past: "bit", part: "bitten"},
+  {de: "blasen, pusten", inf: "blow", past: "blew", part: "blown"},
+  {de: "(zer)brechen, kaputt machen", inf: "break", past: "broke", part: "broken"},
+  {de: "(mit)bringen", inf: "bring", past: "brought", part: "brought"},
+  {de: "bauen", inf: "build", past: "built", part: "built"},
+  {de: "verbrennen", inf: "burn", past: "burnt/burned", part: "burnt/burned"},
+  {de: "(weg)kaufen", inf: "buy", past: "bought", part: "bought"},
+  {de: "fangen", inf: "catch", past: "caught", part: "caught"},
+  {de: "wählen", inf: "choose", past: "chose", part: "chosen"},
+  {de: "(aus)wählen", inf: "come", past: "came", part: "come"},
+  {de: "kosten", inf: "cost", past: "cost", part: "cost"},
+  {de: "schneiden", inf: "cut", past: "cut", part: "cut"},
+  {de: "sich befassen (mit), umgehen (mit)", inf: "deal", past: "dealt", part: "dealt"},
+  {de: "machen; tun", inf: "do", past: "did", part: "done"},
+  {de: "zeichnen, ziehen", inf: "draw", past: "drew", part: "drawn"},
+  {de: "träumen", inf: "dream", past: "dreamt/dreamed", part: "dreamt/dreamed"},
+  {de: "trinken", inf: "drink", past: "drank", part: "drunk"},
+  {de: "fahren", inf: "drive", past: "drove", part: "driven"},
+  {de: "essen", inf: "eat", past: "ate", part: "eaten"},
+  {de: "(hin)fallen", inf: "fall", past: "fell", part: "fallen"},
+  {de: "füttern, ernähren", inf: "feed", past: "fed", part: "fed"},
+  {de: "fühlen", inf: "feel", past: "felt", part: "felt"},
+  {de: "kämpfen, (sich) streiten", inf: "fight", past: "fought", part: "fought"},
+  {de: "finden", inf: "find", past: "found", part: "found"},
+  {de: "passen", inf: "fit", past: "fit/fitted", part: "fit/fitted"},
+  {de: "fliegen", inf: "fly", past: "flew", part: "flown"},
+  {de: "vergessen", inf: "forget", past: "forgot", part: "forgotten"},
+  {de: "vergeben, verzeihen", inf: "forgive", past: "forgave", part: "forgiven"},
+  {de: "gefrieren, erstarren", inf: "freeze", past: "froze", part: "frozen"},
+  {de: "bekommen, erhalten", inf: "get", past: "got", part: "gotten/got"},
+  {de: "geben", inf: "give", past: "gave", part: "given"},
+  {de: "gehen; fahren", inf: "go", past: "went", part: "gone"},
+  {de: "wachsen; anbauen; züchten", inf: "grow", past: "grew", part: "grown"},
+  {de: "hängen", inf: "hang", past: "hung", part: "hung"},
+  {de: "haben", inf: "have", past: "had", part: "had"},
+  {de: "hören", inf: "hear", past: "heard", part: "heard"},
+  {de: "(sich) verstecken", inf: "hide", past: "hid", part: "hidden"},
+  {de: "schlagen; treffen", inf: "hit", past: "hit", part: "hit"},
+  {de: "(fest)halten", inf: "hold", past: "held", part: "held"},
+  {de: "verletzen; sich weh tun", inf: "hurt", past: "hurt", part: "hurt"},
+  {de: "aufbewahren, behalten", inf: "keep", past: "kept", part: "kept"},
+  {de: "(er)kennen; wissen", inf: "know", past: "knew", part: "known"},
+  {de: "(an)führen", inf: "lead", past: "led", part: "led"},
+  {de: "lernen", inf: "learn", past: "learnt/learned", part: "learnt/learned"},
+  {de: "verlassen", inf: "leave", past: "left", part: "left"},
+  {de: "(ver)leihen", inf: "lend", past: "lent", part: "lent"},
+  {de: "lassen", inf: "let", past: "let", part: "let"},
+  {de: "liegen", inf: "lie", past: "lay", part: "lain"},
+  {de: "verlieren", inf: "lose", past: "lost", part: "lost"},
+  {de: "machen, tun", inf: "make", past: "made", part: "made"},
+  {de: "bedeuten; meinen", inf: "mean", past: "meant", part: "meant"},
+  {de: "treffen", inf: "meet", past: "met", part: "met"},
+  {de: "(be)zahlen", inf: "pay", past: "paid", part: "paid"},
+  {de: "legen, setzen; stellen", inf: "put", past: "put", part: "put"},
+  {de: "lesen", inf: "read", past: "read", part: "read"},
+  {de: "fahren, reiten", inf: "ride", past: "rode", part: "ridden"},
+  {de: "klingeln; läuten", inf: "ring", past: "rang", part: "rung"},
+  {de: "steigen, sich erheben", inf: "rise", past: "rose", part: "risen"},
+  {de: "laufen, rennen", inf: "run", past: "ran", part: "run"},
+  {de: "sagen", inf: "say", past: "said", part: "said"},
+  {de: "sehen", inf: "see", past: "saw", part: "seen"},
+  {de: "verkaufen", inf: "sell", past: "sold", part: "sold"},
+  {de: "senden, verschicken", inf: "send", past: "sent", part: "sent"},
+  {de: "erbauen, errichten", inf: "set up", past: "set up", part: "set up"},
+  {de: "scheinen, glänzen", inf: "shine", past: "shone", part: "shone"},
+  {de: "schießen", inf: "shoot", past: "shot", part: "shot"},
+  {de: "zeigen", inf: "show", past: "showed", part: "shown"},
+  {de: "singen", inf: "sing", past: "sang", part: "sung"},
+  {de: "untergehen, sinken", inf: "sink", past: "sank", part: "sunk"},
+  {de: "sitzen", inf: "sit", past: "sat", part: "sat"},
+  {de: "schlafen", inf: "sleep", past: "slept", part: "slept"},
+  {de: "riechen, duften", inf: "smell", past: "smelt/smelled", part: "smelt/smelled"},
+  {de: "sprechen", inf: "speak", past: "spoke", part: "spoken"},
+  {de: "buchstabieren", inf: "spell", past: "spelt/spelled", part: "spelt/spelled"},
+  {de: "ausgeben, verbringen", inf: "spend", past: "spent", part: "spent"},
+  {de: "verschütten, auslaufen", inf: "spill", past: "spilt/spilled", part: "spilt/spilled"},
+  {de: "stehen", inf: "stand", past: "stood", part: "stood"},
+  {de: "stehlen", inf: "steal", past: "stole", part: "stolen"},
+  {de: "stechen", inf: "sting", past: "stung", part: "stung"},
+  {de: "schwimmen", inf: "swim", past: "swam", part: "swum"},
+  {de: "nehmen", inf: "take", past: "took", part: "taken"},
+  {de: "unterrichten, lehren, beibringen", inf: "teach", past: "taught", part: "taught"},
+  {de: "erzählen", inf: "tell", past: "told", part: "told"},
+  {de: "(nach)denken, glauben", inf: "think", past: "thought", part: "thought"},
+  {de: "werfen", inf: "throw", past: "threw", part: "thrown"},
+  {de: "verstehen", inf: "understand", past: "understood", part: "understood"},
+  {de: "(auf)wachen, (auf)wecken", inf: "wake up", past: "woke up", part: "woken up"},
+  {de: "anhaben, tragen", inf: "wear", past: "wore", part: "worn"},
+  {de: "gewinnen, siegen", inf: "win", past: "won", part: "won"},
+  {de: "schreiben", inf: "write", past: "wrote", part: "written"}
+];
 
-    const infinitiveEl=document.getElementById('infinitive');
-    const progressEl=document.getElementById('progress');
-    const answerInput=document.getElementById('answerInput');
-    const submitBtn=document.getElementById('submitBtn');
-    const feedback=document.getElementById('feedback');
-    const correctCountEl=document.getElementById('correctCount');
-    const wrongCountEl=document.getElementById('wrongCount');
-    const answeredCountEl=document.getElementById('answeredCount');
-    const startBtn=document.getElementById('startBtn');
-    const verbCountSelect=document.getElementById('verbCount');
-    const summaryCard=document.getElementById('summaryCard');
-    const summaryResult=document.getElementById('summaryResult');
-    const summaryComment=document.getElementById('summaryComment');
-    const restartBtn=document.getElementById('restartBtn');
+// UI Elements
+const deWordEl = document.getElementById('deWord');
+const promptTextEl = document.getElementById('promptText');
+const answerInput = document.getElementById('answerInput');
+const okBtn = document.getElementById('okBtn');
+const startBtn = document.getElementById('startBtn');
+const verbCountSelect = document.getElementById('verbCount');
+const modeSelect = document.getElementById('modeSelect');
+const feedbackEl = document.getElementById('feedback');
+const correctCountEl = document.getElementById('correctCount');
+const wrongCountEl = document.getElementById('wrongCount');
+const answeredCountEl = document.getElementById('answeredCount');
+const summaryCard = document.getElementById('summaryCard');
+const summaryResult = document.getElementById('summaryResult');
+const summaryComment = document.getElementById('summaryComment');
+const restartBtn = document.getElementById('restartBtn');
 
-    let quiz=[], current=0, correct=0, wrong=0, answered=0;
+// Quiz state
+let quiz = [];
+let currentIndex = 0;
+let step = 0; // 0 = ask infinitive, 1 = ask first tense, 2 = ask second tense (if both)
+let correct = 0;
+let wrong = 0;
+let answered = 0;
+let mode = 'past';
 
-    function shuffle(arr){for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]]}return arr;}
+function shuffle(arr){
+  for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]]}
+  return arr;
+}
 
-    function startQuiz(){
-      const count=parseInt(verbCountSelect.value);
-      quiz=shuffle([...verbs]).slice(0,count);
-      current=0; correct=0; wrong=0; answered=0;
-      correctCountEl.textContent=0; wrongCountEl.textContent=0; answeredCountEl.textContent=0;
-      answerInput.disabled=false; submitBtn.disabled=false; feedback.textContent='';
-      startBtn.disabled=true; verbCountSelect.disabled=true; summaryCard.style.display='none';
-      renderCurrent();
+function startQuiz(){
+  const count = Math.min(verbs.length, parseInt(verbCountSelect.value,10));
+  mode = modeSelect.value;
+  quiz = shuffle(verbs.slice()).slice(0,count);
+  currentIndex = 0; step = 0; correct = 0; wrong = 0; answered = 0;
+  correctCountEl.textContent = '0'; wrongCountEl.textContent = '0'; answeredCountEl.textContent = '0';
+  feedbackEl.textContent = '';
+  summaryCard.style.display = 'none';
+  answerInput.disabled = false; okBtn.disabled = false; answerInput.value = '';
+  renderCurrent();
+}
+
+function renderCurrent(){
+  const v = quiz[currentIndex];
+  // Step 0: ask Infinitiv (German shown)
+  if(step === 0){
+    deWordEl.textContent = v.de;
+    promptTextEl.textContent = 'Bitte das englische Infinitiv eingeben';
+    answerInput.value = '';
+    answerInput.focus();
+  } else if(step === 1){
+    // ask first selected tense
+    deWordEl.textContent = v.inf + ' — ' + v.de;
+    if(mode === 'past'){
+      promptTextEl.textContent = 'Gib das Simple Past an';
+    } else if(mode === 'part'){
+      promptTextEl.textContent = 'Gib das Past Participle an';
+    } else if(mode === 'both'){
+      promptTextEl.textContent = 'Gib das Simple Past an';
     }
+    answerInput.value = '';
+    answerInput.focus();
+  } else if(step === 2){
+    // only for mode 'both' - ask past participle
+    deWordEl.textContent = v.inf + ' — ' + v.de;
+    promptTextEl.textContent = 'Gib das Past Participle an';
+    answerInput.value = '';
+    answerInput.focus();
+  }
+  // update progress display
+  document.getElementById('progress')?.remove();
+  const progress = document.createElement('div');
+  progress.id = 'progress';
+  progress.style.textAlign = 'center';
+  progress.style.color = '#94a3b8';
+  progress.style.marginTop = '8px';
+  progress.textContent = `${currentIndex+1} / ${quiz.length} (Schritt ${step+1})`;
+  document.querySelector('.card').appendChild(progress);
+}
 
-    function renderCurrent(){
-      const [inf]=quiz[current];
-      infinitiveEl.textContent=inf;
-      progressEl.textContent=`${current+1} / ${quiz.length}`;
-      feedback.textContent=''; answerInput.value=''; answerInput.focus();
-    }
+function normalize(s){return (s||'').trim().toLowerCase();}
 
-    function normalize(s){return s.trim().toLowerCase();}
+function checkAnswer(){
+  const v = quiz[currentIndex];
+  const user = normalize(answerInput.value);
+  let correctAnswers = [];
+  if(step === 0){
+    correctAnswers = [normalize(v.inf)];
+  } else if(step === 1){
+    if(mode === 'past') correctAnswers = v.past.split('/').map(x=>normalize(x));
+    else if(mode === 'part') correctAnswers = v.part.split('/').map(x=>normalize(x));
+    else if(mode === 'both') correctAnswers = v.past.split('/').map(x=>normalize(x));
+  } else if(step === 2){
+    correctAnswers = v.part.split('/').map(x=>normalize(x));
+  }
 
-    function checkAnswer(){
-      const ans=normalize(answerInput.value);
-      const [,past]=quiz[current];
-      const variants=past.split('/').map(v=>normalize(v));
-      const ok=variants.includes(ans);
-      answered++; answeredCountEl.textContent=answered;
-      if(ok){
-        correct++; correctCountEl.textContent=correct;
-        feedback.innerHTML='<span class="correct">Richtig ✓</span>';
+  const isCorrect = correctAnswers.includes(user);
+
+  // Count and feedback rules: if wrong, show correct answer in green and count as wrong
+  answered++;
+  answeredCountEl.textContent = answered;
+
+  if(isCorrect){
+    correct++;
+    correctCountEl.textContent = correct;
+    feedbackEl.innerHTML = '<span class="correct">Richtig ✓</span>';
+  } else {
+    wrong++;
+    wrongCountEl.textContent = wrong;
+    // show correct answer in green
+    const display = correctAnswers.join(' / ');
+    feedbackEl.innerHTML = `<span class="wrong">Falsch — </span><span class="right-answer">${display}</span>`;
+  }
+
+  // after short delay, advance to next step or next verb
+  okBtn.disabled = true; answerInput.disabled = true;
+  setTimeout(()=>{
+    // determine next step
+    if(step === 0){
+      // move to tense-question if mode requires it
+      if(mode === 'past' || mode === 'part' || mode === 'both'){
+        step = 1;
+        okBtn.disabled = false; answerInput.disabled = false; feedbackEl.textContent = '';
+        renderCurrent();
       } else {
-        wrong++; wrongCountEl.textContent=wrong;
-        feedback.innerHTML='<span class="wrong">Falsch — '+past+'</span>';
+        // no tense selected, go to next verb
+        step = 0; currentIndex++;
+        okBtn.disabled = false; answerInput.disabled = false; feedbackEl.textContent = '';
+        if(currentIndex < quiz.length) renderCurrent(); else showSummary();
       }
-      answerInput.disabled=true; submitBtn.disabled=true;
-
-      // automatisch nach 1.5 Sekunden zum nächsten Verb oder Auswertung
-      setTimeout(()=>{
-        if(current<quiz.length-1){
-          current++;
-          answerInput.disabled=false; submitBtn.disabled=false;
-          renderCurrent();
-        } else {
-          showSummary();
-        }
-      },1500);
+    } else if(step === 1){
+      if(mode === 'both'){
+        // go to step 2 (past participle)
+        step = 2;
+        okBtn.disabled = false; answerInput.disabled = false; feedbackEl.textContent = '';
+        renderCurrent();
+      } else {
+        // finished this verb, move to next
+        step = 0; currentIndex++;
+        okBtn.disabled = false; answerInput.disabled = false; feedbackEl.textContent = '';
+        if(currentIndex < quiz.length) renderCurrent(); else showSummary();
+      }
+    } else if(step === 2){
+      // finished both steps for this verb
+      step = 0; currentIndex++;
+      okBtn.disabled = false; answerInput.disabled = false; feedbackEl.textContent = '';
+      if(currentIndex < quiz.length) renderCurrent(); else showSummary();
     }
+  }, 1200);
+}
 
-    function showSummary(){
-      const total=quiz.length;
-      const percent=Math.round((correct/total)*100);
-      let comment="";
-      if(percent>=90){comment="🌟 Fantastisch! Du beherrschst diese Verben richtig gut!";}
-      else if(percent>=70){comment="💪 Sehr gut! Nur ein paar kleine Fehler.";}
-      else if(percent>=50){comment="🙂 Gut gemacht! Ein bisschen Übung noch.";}
-      else{comment="🔁 Nicht schlimm – weiter üben, du schaffst das!";}
+function showSummary(){
+  const total = answered || 1;
+  const percent = Math.round((correct / total) * 100);
+  let comment = '';
+  if(percent >= 90) comment = '🌟 Fantastisch! Du beherrschst diese Verben richtig gut!';
+  else if(percent >= 70) comment = '💪 Sehr gut! Nur ein paar kleine Fehler.';
+  else if(percent >= 50) comment = '🙂 Gut gemacht! Ein bisschen Übung noch.';
+  else comment = '🔁 Nicht schlimm – weiter üben, du schaffst das!';
 
-      summaryResult.textContent=`${correct}/${total} korrekt (${percent}%)`;
-      summaryComment.textContent=comment;
-      summaryCard.style.display='block';
-      startBtn.disabled=false; verbCountSelect.disabled=false;
-      infinitiveEl.textContent='—'; progressEl.textContent='0 / 0';
-      answerInput.value=''; feedback.textContent='';
-    }
+  summaryResult.textContent = `${correct} / ${total} korrekt (${percent}%)`;
+  summaryComment.textContent = comment;
+  summaryCard.style.display = 'block';
+  // reset UI
+  deWordEl.textContent = '—';
+  promptTextEl.textContent = '';
+  answerInput.value = '';
+  answerInput.disabled = true;
+  okBtn.disabled = true;
+}
 
-    restartBtn.addEventListener('click',()=>{summaryCard.style.display='none'; startQuiz();});
-    submitBtn.addEventListener('click',checkAnswer);
-    answerInput.addEventListener('keydown',e=>{if(e.key==='Enter')checkAnswer();});
-    startBtn.addEventListener('click',startQuiz);
-  </script>
+// events
+okBtn.addEventListener('click', checkAnswer);
+answerInput.addEventListener('keydown', (e)=>{ if(e.key === 'Enter') checkAnswer(); });
+startBtn.addEventListener('click', startQuiz);
+restartBtn.addEventListener('click', ()=>{ summaryCard.style.display='none'; startQuiz(); });
+
+</script>
 </body>
 </html>
