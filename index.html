@@ -33,10 +33,6 @@
       <button id="submitBtn" disabled>OK</button>
     </div>
     <div class="feedback" id="feedback"></div>
-    <div style="display:flex;justify-content:center;gap:8px;margin-top:8px;">
-      <button id="showAnswer" disabled>Antwort zeigen</button>
-      <button id="nextBtn" disabled>Nächstes</button>
-    </div>
     <div class="stats">
       Richtige: <span id="correctCount">0</span> · Falsche: <span id="wrongCount">0</span> · Beantwortet: <span id="answeredCount">0</span>
     </div>
@@ -84,8 +80,6 @@
     const progressEl=document.getElementById('progress');
     const answerInput=document.getElementById('answerInput');
     const submitBtn=document.getElementById('submitBtn');
-    const showAnswerBtn=document.getElementById('showAnswer');
-    const nextBtn=document.getElementById('nextBtn');
     const feedback=document.getElementById('feedback');
     const correctCountEl=document.getElementById('correctCount');
     const wrongCountEl=document.getElementById('wrongCount');
@@ -97,16 +91,16 @@
     const summaryComment=document.getElementById('summaryComment');
     const restartBtn=document.getElementById('restartBtn');
 
-    let quiz=[]; let current=0; let correct=0; let wrong=0; let answered=0; let waiting=false;
+    let quiz=[], current=0, correct=0, wrong=0, answered=0;
 
     function shuffle(arr){for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]]}return arr;}
 
     function startQuiz(){
       const count=parseInt(verbCountSelect.value);
       quiz=shuffle([...verbs]).slice(0,count);
-      current=0; correct=0; wrong=0; answered=0; waiting=false;
+      current=0; correct=0; wrong=0; answered=0;
       correctCountEl.textContent=0; wrongCountEl.textContent=0; answeredCountEl.textContent=0;
-      answerInput.disabled=false; submitBtn.disabled=false; showAnswerBtn.disabled=false; nextBtn.disabled=true; feedback.textContent='';
+      answerInput.disabled=false; submitBtn.disabled=false; feedback.textContent='';
       startBtn.disabled=true; verbCountSelect.disabled=true; summaryCard.style.display='none';
       renderCurrent();
     }
@@ -121,36 +115,30 @@
     function normalize(s){return s.trim().toLowerCase();}
 
     function checkAnswer(){
-      if(waiting) return;
       const ans=normalize(answerInput.value);
       const [,past]=quiz[current];
       const variants=past.split('/').map(v=>normalize(v));
       const ok=variants.includes(ans);
       answered++; answeredCountEl.textContent=answered;
       if(ok){
-        correct++; correctCountEl.textContent=correct; feedback.innerHTML='<span class="correct">Richtig ✓</span>';
+        correct++; correctCountEl.textContent=correct;
+        feedback.innerHTML='<span class="correct">Richtig ✓</span>';
       } else {
-        wrong++; wrongCountEl.textContent=wrong; feedback.innerHTML='<span class="wrong">Falsch — '+past+'</span>';
+        wrong++; wrongCountEl.textContent=wrong;
+        feedback.innerHTML='<span class="wrong">Falsch — '+past+'</span>';
       }
-      waiting=true; submitBtn.disabled=true; nextBtn.disabled=false; showAnswerBtn.disabled=true; answerInput.disabled=true;
-      if(current===quiz.length-1) nextBtn.textContent='Auswertung anzeigen';
-    }
+      answerInput.disabled=true; submitBtn.disabled=true;
 
-    function showAnswer(){
-      const [,past]=quiz[current];
-      feedback.innerHTML='<span class="wrong">Korrekt: '+past+'</span>';
-      wrong++; wrongCountEl.textContent=wrong; answered++; answeredCountEl.textContent=answered;
-      waiting=true; submitBtn.disabled=true; nextBtn.disabled=false; showAnswerBtn.disabled=true; answerInput.disabled=true;
-      if(current===quiz.length-1) nextBtn.textContent='Auswertung anzeigen';
-    }
-
-    function next(){
-      if(!waiting) return;
-      if(current<quiz.length-1){
-        current++; waiting=false; answerInput.disabled=false; submitBtn.disabled=false; showAnswerBtn.disabled=false; nextBtn.disabled=true; renderCurrent();
-      } else {
-        showSummary();
-      }
+      // automatisch nach 1.5 Sekunden zum nächsten Verb oder Auswertung
+      setTimeout(()=>{
+        if(current<quiz.length-1){
+          current++;
+          answerInput.disabled=false; submitBtn.disabled=false;
+          renderCurrent();
+        } else {
+          showSummary();
+        }
+      },1500);
     }
 
     function showSummary(){
@@ -165,18 +153,14 @@
       summaryResult.textContent=`${correct}/${total} korrekt (${percent}%)`;
       summaryComment.textContent=comment;
       summaryCard.style.display='block';
-      startBtn.disabled=false; verbCountSelect.disabled=false; answerInput.disabled=true; submitBtn.disabled=true; showAnswerBtn.disabled=true; nextBtn.disabled=true; infinitiveEl.textContent='—'; progressEl.textContent='0 / 0';
+      startBtn.disabled=false; verbCountSelect.disabled=false;
+      infinitiveEl.textContent='—'; progressEl.textContent='0 / 0';
+      answerInput.value=''; feedback.textContent='';
     }
 
-    restartBtn.addEventListener('click',()=>{
-      summaryCard.style.display='none';
-      startQuiz();
-    });
-
+    restartBtn.addEventListener('click',()=>{summaryCard.style.display='none'; startQuiz();});
     submitBtn.addEventListener('click',checkAnswer);
     answerInput.addEventListener('keydown',e=>{if(e.key==='Enter')checkAnswer();});
-    showAnswerBtn.addEventListener('click',showAnswer);
-    nextBtn.addEventListener('click',next);
     startBtn.addEventListener('click',startQuiz);
   </script>
 </body>
