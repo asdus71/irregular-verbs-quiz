@@ -21,6 +21,11 @@
   .summary-card{background:#16203a;border-radius:12px;padding:18px;margin-top:20px;box-shadow:0 6px 18px rgba(2,6,23,0.6);width:520px;max-width:95%;text-align:center}
   .controls{display:flex;gap:8px;align-items:center;justify-content:center;margin-top:12px}
   label.small{color:#94a3b8;font-size:13px}
+  table{width:100%;border-collapse:collapse;margin-top:16px;color:#e6eef8;font-size:14px}
+  th,td{border-bottom:1px solid rgba(255,255,255,0.1);padding:6px 8px;text-align:left}
+  th{color:#94a3b8;font-weight:600}
+  .wrong-cell{color:#ef4444;font-weight:600}
+  .user-answer{color:#94a3b8;font-style:italic}
 </style>
 </head>
 <body>
@@ -164,7 +169,7 @@ const verbs = [
 //  {de: "schreiben", inf: "write", past: "wrote", part: "written"}
 ];
 
-// UI Elements
+// UI
 const deWordEl = document.getElementById('deWord');
 const promptTextEl = document.getElementById('promptText');
 const answerInput = document.getElementById('answerInput');
@@ -181,67 +186,40 @@ const summaryResult = document.getElementById('summaryResult');
 const summaryComment = document.getElementById('summaryComment');
 const restartBtn = document.getElementById('restartBtn');
 
-// Quiz state
+// Statusvariablen
 let quiz = [];
 let currentIndex = 0;
-let step = 0; // 0 = ask infinitive, 1 = ask first tense, 2 = ask second tense (if both)
+let step = 0;
 let correct = 0;
 let wrong = 0;
 let answered = 0;
 let mode = 'past';
+let results = [];
 
-function shuffle(arr){
-  for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]]}
-  return arr;
-}
+function shuffle(arr){ for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]]} return arr; }
 
 function startQuiz(){
   const count = Math.min(verbs.length, parseInt(verbCountSelect.value,10));
   mode = modeSelect.value;
   quiz = shuffle(verbs.slice()).slice(0,count);
   currentIndex = 0; step = 0; correct = 0; wrong = 0; answered = 0;
-  correctCountEl.textContent = '0'; wrongCountEl.textContent = '0'; answeredCountEl.textContent = '0';
+  results = [];
+  correctCountEl.textContent = wrongCountEl.textContent = answeredCountEl.textContent = '0';
   feedbackEl.textContent = '';
   summaryCard.style.display = 'none';
-  answerInput.disabled = false; okBtn.disabled = false; answerInput.value = '';
+  answerInput.disabled = false; okBtn.disabled = false;
   renderCurrent();
 }
 
 function renderCurrent(){
   const v = quiz[currentIndex];
-  // Step 0: ask Infinitiv (German shown)
-  if(step === 0){
-    deWordEl.textContent = v.de;
-    promptTextEl.textContent = 'Bitte das englische Infinitiv eingeben';
-    answerInput.value = '';
-    answerInput.focus();
-  } else if(step === 1){
-    // ask first selected tense
-    deWordEl.textContent = v.inf + ' — ' + v.de;
-    if(mode === 'past'){
-      promptTextEl.textContent = 'Gib das Simple Past an';
-    } else if(mode === 'part'){
-      promptTextEl.textContent = 'Gib das Past Participle an';
-    } else if(mode === 'both'){
-      promptTextEl.textContent = 'Gib das Simple Past an';
-    }
-    answerInput.value = '';
-    answerInput.focus();
-  } else if(step === 2){
-    // only for mode 'both' - ask past participle
-    deWordEl.textContent = v.inf + ' — ' + v.de;
-    promptTextEl.textContent = 'Gib das Past Participle an';
-    answerInput.value = '';
-    answerInput.focus();
-  }
-  // update progress display
+  if(step === 0){ deWordEl.textContent = v.de; promptTextEl.textContent = 'Bitte das englische Infinitiv eingeben'; }
+  else if(step === 1){ deWordEl.textContent = v.inf + ' — ' + v.de; promptTextEl.textContent = (mode==='part')?'Gib das Past Participle an':'Gib das Simple Past an'; }
+  else if(step === 2){ deWordEl.textContent = v.inf + ' — ' + v.de; promptTextEl.textContent = 'Gib das Past Participle an'; }
+  answerInput.value=''; answerInput.focus();
   document.getElementById('progress')?.remove();
-  const progress = document.createElement('div');
-  progress.id = 'progress';
-  progress.style.textAlign = 'center';
-  progress.style.color = '#94a3b8';
-  progress.style.marginTop = '8px';
-  progress.textContent = `${currentIndex+1} / ${quiz.length} (Schritt ${step+1})`;
+  const progress=document.createElement('div');progress.id='progress';progress.style.textAlign='center';progress.style.color='#94a3b8';progress.style.marginTop='8px';
+  progress.textContent=`${currentIndex+1} / ${quiz.length} (Schritt ${step+1})`;
   document.querySelector('.card').appendChild(progress);
 }
 
@@ -251,100 +229,81 @@ function checkAnswer(){
   const v = quiz[currentIndex];
   const user = normalize(answerInput.value);
   let correctAnswers = [];
-  if(step === 0){
-    correctAnswers = [normalize(v.inf)];
-  } else if(step === 1){
-    if(mode === 'past') correctAnswers = v.past.split('/').map(x=>normalize(x));
-    else if(mode === 'part') correctAnswers = v.part.split('/').map(x=>normalize(x));
-    else if(mode === 'both') correctAnswers = v.past.split('/').map(x=>normalize(x));
-  } else if(step === 2){
-    correctAnswers = v.part.split('/').map(x=>normalize(x));
+  let field = '';
+
+  if(step===0){correctAnswers=[normalize(v.inf)]; field='inf';}
+  else if(step===1){
+    if(mode==='past'){correctAnswers=v.past.split('/').map(x=>normalize(x)); field='past';}
+    else if(mode==='part'){correctAnswers=v.part.split('/').map(x=>normalize(x)); field='part';}
+    else if(mode==='both'){correctAnswers=v.past.split('/').map(x=>normalize(x)); field='past';}
+  } else if(step===2){correctAnswers=v.part.split('/').map(x=>normalize(x)); field='part';}
+
+  const isCorrect=correctAnswers.includes(user);
+  answered++; answeredCountEl.textContent=answered;
+
+  // Ergebnislogik
+  let result = results.find(r=>r.de===v.de);
+  if(!result){
+    result={...v, wrongInf:false, wrongPast:false, wrongPart:false, userInf:'', userPast:'', userPart:''};
+    results.push(result);
   }
 
-  const isCorrect = correctAnswers.includes(user);
-
-  // Count and feedback rules: if wrong, show correct answer in green and count as wrong
-  answered++;
-  answeredCountEl.textContent = answered;
-
-  if(isCorrect){
-    correct++;
-    correctCountEl.textContent = correct;
-    feedbackEl.innerHTML = '<span class="correct">Richtig ✓</span>';
-  } else {
-    wrong++;
-    wrongCountEl.textContent = wrong;
-    // show correct answer in green
-    const display = correctAnswers.join(' / ');
-    feedbackEl.innerHTML = `<span class="wrong">Falsch — </span><span class="right-answer">${display}</span>`;
+  if(isCorrect){ correct++; correctCountEl.textContent=correct; feedbackEl.innerHTML='<span class="correct">Richtig ✓</span>'; }
+  else {
+    wrong++; wrongCountEl.textContent=wrong;
+    feedbackEl.innerHTML=`<span class="wrong">Falsch — </span><span class="right-answer">${correctAnswers.join(' / ')}</span>`;
+    if(field==='inf'){result.wrongInf=true; result.userInf=answerInput.value;}
+    if(field==='past'){result.wrongPast=true; result.userPast=answerInput.value;}
+    if(field==='part'){result.wrongPart=true; result.userPart=answerInput.value;}
   }
 
-  // after short delay, advance to next step or next verb
-  okBtn.disabled = true; answerInput.disabled = true;
+  okBtn.disabled=true; answerInput.disabled=true;
   setTimeout(()=>{
-    // determine next step
-    if(step === 0){
-      // move to tense-question if mode requires it
-      if(mode === 'past' || mode === 'part' || mode === 'both'){
-        step = 1;
-        okBtn.disabled = false; answerInput.disabled = false; feedbackEl.textContent = '';
-        renderCurrent();
-      } else {
-        // no tense selected, go to next verb
-        step = 0; currentIndex++;
-        okBtn.disabled = false; answerInput.disabled = false; feedbackEl.textContent = '';
-        if(currentIndex < quiz.length) renderCurrent(); else showSummary();
-      }
-    } else if(step === 1){
-      if(mode === 'both'){
-        // go to step 2 (past participle)
-        step = 2;
-        okBtn.disabled = false; answerInput.disabled = false; feedbackEl.textContent = '';
-        renderCurrent();
-      } else {
-        // finished this verb, move to next
-        step = 0; currentIndex++;
-        okBtn.disabled = false; answerInput.disabled = false; feedbackEl.textContent = '';
-        if(currentIndex < quiz.length) renderCurrent(); else showSummary();
-      }
-    } else if(step === 2){
-      // finished both steps for this verb
-      step = 0; currentIndex++;
-      okBtn.disabled = false; answerInput.disabled = false; feedbackEl.textContent = '';
-      if(currentIndex < quiz.length) renderCurrent(); else showSummary();
-    }
-  }, 1200);
+    if(step===0){step=1;}
+    else if(step===1){if(mode==='both') step=2; else {step=0; currentIndex++;}}
+    else if(step===2){step=0; currentIndex++;}
+    okBtn.disabled=false; answerInput.disabled=false; feedbackEl.textContent='';
+    if(currentIndex<quiz.length) renderCurrent(); else showSummary();
+  },1000);
 }
 
 function showSummary(){
-  const total = answered || 1;
-  const percent = Math.round((correct / total) * 100);
-  let comment = '';
-  if(percent >= 90) comment = '🌟 Fantastisch! Du beherrschst diese Verben richtig gut!';
-  else if(percent >= 70) comment = '💪 Sehr gut! Nur ein paar kleine Fehler.';
-  else if(percent >= 50) comment = '🙂 Gut gemacht! Ein bisschen Übung noch.';
-  else comment = '🔁 Nicht schlimm – weiter üben, du schaffst das!';
+  const total=answered||1;
+  const percent=Math.round((correct/total)*100);
+  let comment='';
+  if(percent>=90)comment='🌟 Fantastisch! Du beherrschst diese Verben richtig gut!';
+  else if(percent>=70)comment='💪 Sehr gut! Nur ein paar kleine Fehler.';
+  else if(percent>=50)comment='🙂 Gut gemacht! Ein bisschen Übung noch.';
+  else comment='🔁 Nicht schlimm – weiter üben, du schaffst das!';
 
-  summaryResult.textContent = `${correct} / ${total} korrekt (${percent}%)`;
-  summaryComment.textContent = comment;
-  summaryCard.style.display = 'block';
-  // reset UI
-  deWordEl.textContent = '—';
-  promptTextEl.textContent = '';
-  answerInput.value = '';
-  answerInput.disabled = true;
-  okBtn.disabled = true;
+  summaryResult.textContent=`${correct} / ${total} korrekt (${percent}%)`;
+  summaryComment.textContent=comment;
+
+  let tableHTML=`<table><thead><tr><th>de</th><th>inf</th><th>past</th><th>part</th><th>deine Antwort(en)</th></tr></thead><tbody>`;
+  for(const v of quiz){
+    const r=results.find(x=>x.de===v.de)||{};
+    tableHTML+=`<tr>
+      <td>${v.de}</td>
+      <td class="${r.wrongInf?'wrong-cell':''}">${v.inf}</td>
+      <td class="${r.wrongPast?'wrong-cell':''}">${v.past}</td>
+      <td class="${r.wrongPart?'wrong-cell':''}">${v.part}</td>
+      <td class="user-answer">${
+        [r.userInf,r.userPast,r.userPart].filter(x=>x).length>0 ?
+        [r.userInf,r.userPast,r.userPart].filter(x=>x).join(', ') : '—'
+      }</td>
+    </tr>`;
+  }
+  tableHTML+='</tbody></table>';
+  summaryComment.insertAdjacentHTML('afterend', tableHTML);
+
+  summaryCard.style.display='block';
+  deWordEl.textContent='—'; promptTextEl.textContent=''; answerInput.value=''; answerInput.disabled=true; okBtn.disabled=true;
 }
 
-// events
-okBtn.addEventListener('click', checkAnswer);
-answerInput.addEventListener('keydown', (e)=>{ if(e.key === 'Enter') checkAnswer(); });
-startBtn.addEventListener('click', startQuiz);
-restartBtn.addEventListener('click', ()=>{ summaryCard.style.display='none'; startQuiz(); });
-
+okBtn.addEventListener('click',checkAnswer);
+answerInput.addEventListener('keydown',e=>{if(e.key==='Enter')checkAnswer();});
+startBtn.addEventListener('click',startQuiz);
+restartBtn.addEventListener('click',()=>{summaryCard.style.display='none';startQuiz();});
 </script>
 </body>
 </html>
-
-
-
