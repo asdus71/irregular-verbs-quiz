@@ -26,6 +26,7 @@
   th{color:#94a3b8;font-weight:600}
   .wrong-cell{color:#ef4444;font-weight:600}
   .user-answer{color:#94a3b8;font-style:italic}
+  .round-summary{margin-bottom:24px;border-top:1px solid rgba(255,255,255,0.1);padding-top:16px;}
 </style>
 </head>
 <body>
@@ -64,9 +65,6 @@
 
   <div class="summary-card" id="summaryCard" style="display:none">
     <h2>Auswertung</h2>
-    <p id="summaryResult"></p>
-    <p id="summaryComment"></p>
-    <div style="margin-top:12px"><button id="restartBtn">Neue Runde starten</button></div>
   </div>
 
 <script>
@@ -169,7 +167,7 @@ const verbs = [
   {de: "schreiben", inf: "write", past: "wrote", part: "written"}
 ];
 
-// Variablen & UI
+// === UI-Elemente ===
 let remainingVerbs = [...verbs];
 const deWordEl = document.getElementById('deWord');
 const promptTextEl = document.getElementById('promptText');
@@ -183,20 +181,14 @@ const correctCountEl = document.getElementById('correctCount');
 const wrongCountEl = document.getElementById('wrongCount');
 const answeredCountEl = document.getElementById('answeredCount');
 const summaryCard = document.getElementById('summaryCard');
-const summaryResult = document.getElementById('summaryResult');
-const summaryComment = document.getElementById('summaryComment');
-const restartBtn = document.getElementById('restartBtn');
 
-const repeatBtn = document.createElement('button');
-repeatBtn.textContent = "Jetzt noch die schwierigen unregelmäßigen Verben lernen";
-repeatBtn.style.marginTop = "8px";
-repeatBtn.style.display = "none";
-summaryCard.appendChild(repeatBtn);
+let quiz = [], currentIndex = 0, step = 0, correct = 0, wrong = 0, answered = 0, mode = 'past', results = [], roundNumber = 1;
 
-let quiz = [], currentIndex = 0, step = 0, correct = 0, wrong = 0, answered = 0, mode = 'past', results = [];
-
+// === Hilfsfunktionen ===
 function shuffle(arr){for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]]}return arr;}
+function normalize(s){return (s||'').trim().toLowerCase();}
 
+// === Quiz starten ===
 function startQuiz(customVerbs){
   const base = customVerbs || remainingVerbs;
   const count = Math.min(base.length, parseInt(verbCountSelect.value,10));
@@ -206,11 +198,11 @@ function startQuiz(customVerbs){
   correctCountEl.textContent=wrongCountEl.textContent=answeredCountEl.textContent='0';
   feedbackEl.textContent='';
   summaryCard.style.display='none';
-  repeatBtn.style.display='none';
   answerInput.disabled=false; okBtn.disabled=false;
   renderCurrent();
 }
 
+// === Aktuelles Verb anzeigen ===
 function renderCurrent(){
   const v=quiz[currentIndex];
   if(step===0){deWordEl.textContent=v.de;promptTextEl.textContent='Bitte das englische Infinitiv eingeben';}
@@ -218,24 +210,32 @@ function renderCurrent(){
   else if(step===2){deWordEl.textContent=v.inf+' — '+v.de;promptTextEl.textContent='Gib das Past Participle an';}
   answerInput.value='';answerInput.focus();
   document.getElementById('progress')?.remove();
-  const progress=document.createElement('div');progress.id='progress';progress.style.textAlign='center';progress.style.color='#94a3b8';progress.style.marginTop='8px';
+  const progress=document.createElement('div');
+  progress.id='progress';
+  progress.style.textAlign='center';
+  progress.style.color='#94a3b8';
+  progress.style.marginTop='8px';
   progress.textContent=`${currentIndex+1} / ${quiz.length} (Schritt ${step+1})`;
   document.querySelector('.card').appendChild(progress);
 }
 
-function normalize(s){return (s||'').trim().toLowerCase();}
-
+// === Antwort prüfen ===
 function checkAnswer(){
   const v=quiz[currentIndex];
   const user=normalize(answerInput.value);
   let correctAnswers=[], field='';
-  if(step===0){correctAnswers=[normalize(v.inf)]; field='inf';}
+  if(step===0){correctAnswers=[normalize(v.inf)];field='inf';}
   else if(step===1){
-    if(mode==='past'){correctAnswers=v.past.split('/').map(x=>normalize(x)); field='past';}
-    else if(mode==='part'){correctAnswers=v.part.split('/').map(x=>normalize(x)); field='part';}
-    else if(mode==='both'){correctAnswers=v.past.split('/').map(x=>normalize(x)); field='past';}
-  } else if(step===2){correctAnswers=v.part.split('/').map(x=>normalize(x)); field='part';}
-  const isCorrect=correctAnswers.includes(user);
+    if(mode==='past'){correctAnswers=v.past.split('/').map(x=>normalize(x));field='past';}
+    else if(mode==='part'){correctAnswers=v.part.split('/').map(x=>normalize(x));field='part';}
+    else if(mode==='both'){correctAnswers=v.past.split('/').map(x=>normalize(x));field='past';}
+  } else if(step===2){correctAnswers=v.part.split('/').map(x=>normalize(x));field='part';}
+
+  let isCorrect=correctAnswers.includes(user);
+  // Sonderfall: nur "was/were" akzeptieren
+  if(v.inf==="be" && field==="past" && user==="was/were"){isCorrect=true;}
+  if(v.inf==="be" && field==="past" && (user==="was" || user==="were")){isCorrect=false;}
+
   answered++;answeredCountEl.textContent=answered;
   let result=results.find(r=>r.de===v.de);
   if(!result){result={...v,wrongInf:false,wrongPast:false,wrongPart:false,userInf:'',userPast:'',userPart:''};results.push(result);}
@@ -255,6 +255,7 @@ function checkAnswer(){
   },1000);
 }
 
+// === Zusammenfassung anzeigen ===
 function showSummary(){
   const total=answered||1;
   const percent=Math.round((correct/total)*100);
@@ -263,8 +264,15 @@ function showSummary(){
   else if(percent>=70)comment='💪 Sehr gut! Nur ein paar kleine Fehler.';
   else if(percent>=50)comment='🙂 Gut gemacht! Ein bisschen Übung noch.';
   else comment='🔁 Nicht schlimm – weiter üben, du schaffst das!';
-  summaryResult.textContent=`${correct} / ${total} korrekt (${percent}%)`;
-  summaryComment.textContent=comment;
+
+  const roundSection=document.createElement('div');
+  roundSection.className="round-summary";
+  roundSection.innerHTML=`
+    <h3>Ergebnis der ${roundNumber}. Runde</h3>
+    <p>${correct} / ${total} korrekt (${percent}%)</p>
+    <p>${comment}</p>
+  `;
+
   let tableHTML=`<table><thead><tr><th>de</th><th>inf</th><th>past</th><th>part</th><th>deine Antwort(en)</th></tr></thead><tbody>`;
   for(const v of quiz){
     const r=results.find(x=>x.de===v.de)||{};
@@ -277,24 +285,40 @@ function showSummary(){
     </tr>`;
   }
   tableHTML+='</tbody></table>';
-  summaryComment.insertAdjacentHTML('afterend', tableHTML);
+  roundSection.innerHTML+=tableHTML;
+
   const stillWrong=results.filter(r=>r.wrongInf||r.wrongPast||r.wrongPart);
-  if(stillWrong.length>0){
-    remainingVerbs=stillWrong.map(r=>({de:r.de,inf:r.inf,past:r.past,part:r.part}));
-    repeatBtn.style.display="inline-block";
-  }else{
-    remainingVerbs=[...verbs];
-    summaryComment.insertAdjacentHTML('afterend',"<p>🎉 Du hast jetzt alle Verben einmal richtig beantwortet!</p>");
-  }
+  if(stillWrong.length>0){remainingVerbs=stillWrong.map(r=>({de:r.de,inf:r.inf,past:r.past,part:r.part}));}
+  else{remainingVerbs=[...verbs];roundSection.innerHTML+="<p>🎉 Du hast jetzt alle Verben einmal richtig beantwortet!</p>";}
+
   summaryCard.style.display='block';
+  // neue Runde oben einfügen
+  summaryCard.insertBefore(roundSection, summaryCard.children[1]);
+
+  // Buttons nur einmalig unten anzeigen
+  if(!document.getElementById("summaryButtons")){
+    const btnContainer=document.createElement("div");
+    btnContainer.id="summaryButtons";
+    btnContainer.style.marginTop="12px";
+    btnContainer.innerHTML=`
+      <button id="restartBtn2">Neue Runde starten</button>
+      <button id="repeatBtn2" style="display:${stillWrong.length>0?'inline-block':'none'};margin-left:8px;">Falsche wiederholen</button>
+    `;
+    summaryCard.appendChild(btnContainer);
+    document.getElementById("restartBtn2").addEventListener("click",()=>{summaryCard.style.display='none';startQuiz();});
+    document.getElementById("repeatBtn2").addEventListener("click",()=>{summaryCard.style.display='none';startQuiz(remainingVerbs);});
+  }else{
+    document.getElementById("repeatBtn2").style.display=stillWrong.length>0?'inline-block':'none';
+  }
+
   deWordEl.textContent='—';promptTextEl.textContent='';answerInput.value='';answerInput.disabled=true;okBtn.disabled=true;
+  roundNumber++;
 }
 
+// === Event-Listener ===
 okBtn.addEventListener('click',checkAnswer);
 answerInput.addEventListener('keydown',e=>{if(e.key==='Enter')checkAnswer();});
 startBtn.addEventListener('click',()=>startQuiz());
-restartBtn.addEventListener('click',()=>{summaryCard.style.display='none';startQuiz();});
-repeatBtn.addEventListener('click',()=>{summaryCard.style.display='none';startQuiz(remainingVerbs);});
 </script>
 </body>
 </html>
