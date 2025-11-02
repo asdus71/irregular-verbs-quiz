@@ -85,31 +85,31 @@ const verbs = [
 //  {de: "verbrennen", inf: "burn", past: "burnt/burned", part: "burnt/burned"},
 //  {de: "kaufen", inf: "buy", past: "bought", part: "bought"},
 //  {de: "fangen", inf: "catch", past: "caught", part: "caught"},
-  {de: "wählen", inf: "choose", past: "chose", part: "chosen"},
-//  {de: "(aus)wählen", inf: "come", past: "came", part: "come"},
+  {de: "(aus)wählen", inf: "choose", past: "chose", part: "chosen"},
+  {de: "kommen", inf: "come", past: "came", part: "come"},
 //  {de: "kosten", inf: "cost", past: "cost", part: "cost"},
 //  {de: "schneiden", inf: "cut", past: "cut", part: "cut"},
   {de: "sich befassen (mit), umgehen (mit)", inf: "deal", past: "dealt", part: "dealt"},
 //  {de: "machen, tun", inf: "do", past: "did", part: "done"},
 //  {de: "zeichnen, ziehen", inf: "draw", past: "drew", part: "drawn"},
-//  {de: "träumen", inf: "dream", past: "dreamt/dreamed", part: "dreamt/dreamed"},
+  {de: "träumen", inf: "dream", past: "dreamt", part: "dreamt"},
   {de: "trinken", inf: "drink", past: "drank", part: "drunk"},
 //  {de: "fahren", inf: "drive", past: "drove", part: "driven"},
 //  {de: "essen", inf: "eat", past: "ate", part: "eaten"},
   {de: "(hin)fallen", inf: "fall", past: "fell", part: "fallen"},
   {de: "füttern, ernähren", inf: "feed", past: "fed", part: "fed"},
 //  {de: "fühlen", inf: "feel", past: "felt", part: "felt"},
-//  {de: "kämpfen, (sich) streiten", inf: "fight", past: "fought", part: "fought"},
+  {de: "kämpfen, (sich) streiten", inf: "fight", past: "fought", part: "fought"},
 //  {de: "finden", inf: "find", past: "found", part: "found"},
   {de: "passen", inf: "fit", past: "fit/fitted", part: "fit/fitted"},
 //  {de: "fliegen", inf: "fly", past: "flew", part: "flown"},
 //  {de: "vergessen", inf: "forget", past: "forgot", part: "forgotten"},
 //  {de: "vergeben, verzeihen", inf: "forgive", past: "forgave", part: "forgiven"},
 //  {de: "gefrieren, erstarren", inf: "freeze", past: "froze", part: "frozen"},
-//  {de: "bekommen, erhalten", inf: "get", past: "got", part: "gotten/got"},
+  {de: "bekommen, erhalten", inf: "get", past: "got", part: "got"},
 //  {de: "geben", inf: "give", past: "gave", part: "given"},
 //  {de: "gehen, fahren", inf: "go", past: "went", part: "gone"},
-//  {de: "wachsen; anbauen; züchten", inf: "grow", past: "grew", part: "grown"},
+//  {de: "wachsen, anbauen, züchten", inf: "grow", past: "grew", part: "grown"},
 //  {de: "hängen", inf: "hang", past: "hung", part: "hung"},
 //  {de: "haben", inf: "have", past: "had", part: "had"},
 //  {de: "hören", inf: "hear", past: "heard", part: "heard"},
@@ -120,7 +120,7 @@ const verbs = [
 //  {de: "aufbewahren, behalten", inf: "keep", past: "kept", part: "kept"},
   {de: "kennen, wissen", inf: "know", past: "knew", part: "known"},
   {de: "(an)führen", inf: "lead", past: "led", part: "led"},
-//  {de: "lernen", inf: "learn", past: "learnt/learned", part: "learnt/learned"},
+  {de: "lernen", inf: "learn", past: "learnt", part: "learnt"},
   {de: "verlassen", inf: "leave", past: "left", part: "left"},
   {de: "(ver)leihen", inf: "lend", past: "lent", part: "lent"},
   {de: "lassen", inf: "let", past: "let", part: "let"},
@@ -140,7 +140,7 @@ const verbs = [
 //  {de: "sehen", inf: "see", past: "saw", part: "seen"},
 //  {de: "verkaufen", inf: "sell", past: "sold", part: "sold"},
 //  {de: "senden, verschicken", inf: "send", past: "sent", part: "sent"},
-//  {de: "erbauen, errichten", inf: "set up", past: "set up", part: "set up"},
+  {de: "erbauen, errichten", inf: "set up", past: "set up", part: "set up"},
 //  {de: "scheinen, glänzen", inf: "shine", past: "shone", part: "shone"},
 //  {de: "schießen", inf: "shoot", past: "shot", part: "shot"},
 //  {de: "zeigen", inf: "show", past: "showed", part: "shown"},
@@ -168,6 +168,7 @@ const verbs = [
 //  {de: "gewinnen, siegen", inf: "win", past: "won", part: "won"},
 //  {de: "schreiben", inf: "write", past: "wrote", part: "written"}
 ];
+
 
 // UI
 const deWordEl = document.getElementById('deWord');
@@ -307,3 +308,4 @@ restartBtn.addEventListener('click',()=>{summaryCard.style.display='none';startQ
 </script>
 </body>
 </html>
+
