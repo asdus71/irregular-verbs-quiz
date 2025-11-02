@@ -118,7 +118,7 @@ const verbs = [
   {de: "aufbewahren, behalten", inf: "keep", past: "kept", part: "kept"},
   {de: "kennen, wissen", inf: "know", past: "knew", part: "known"},
   {de: "(an)führen", inf: "lead", past: "led", part: "led"},
-  {de: "lernen", inf: "learn", past: "learnt", part: "learnt"},
+  {de: "lernen", inf: "learn", past: "learnt/learned", part: "learnt/learned"},
   {de: "verlassen", inf: "leave", past: "left", part: "left"},
   {de: "(ver)leihen", inf: "lend", past: "lent", part: "lent"},
   {de: "lassen", inf: "let", past: "let", part: "let"},
@@ -190,129 +190,133 @@ function normalize(s){return (s||'').trim().toLowerCase();}
 
 // === Quiz starten ===
 function startQuiz(customVerbs){
-  const base = customVerbs || remainingVerbs;
-  const count = Math.min(base.length, parseInt(verbCountSelect.value,10));
-  mode = modeSelect.value;
-  quiz = shuffle(base.slice()).slice(0,count);
-  currentIndex=0; step=0; correct=0; wrong=0; answered=0; results=[];
-  correctCountEl.textContent=wrongCountEl.textContent=answeredCountEl.textContent='0';
-  feedbackEl.textContent='';
-  summaryCard.style.display='none';
-  answerInput.disabled=false; okBtn.disabled=false;
-  renderCurrent();
+  const base = customVerbs || remainingVerbs;
+  const count = Math.min(base.length, parseInt(verbCountSelect.value,10));
+  mode = modeSelect.value;
+  quiz = shuffle(base.slice()).slice(0,count);
+  currentIndex=0; step=0; correct=0; wrong=0; answered=0; results=[];
+  correctCountEl.textContent=wrongCountEl.textContent=answeredCountEl.textContent='0';
+  feedbackEl.textContent='';
+  summaryCard.style.display='none';
+  answerInput.disabled=false; okBtn.disabled=false;
+  renderCurrent();
 }
 
 // === Aktuelles Verb anzeigen ===
 function renderCurrent(){
-  const v=quiz[currentIndex];
-  if(step===0){deWordEl.textContent=v.de;promptTextEl.textContent='Bitte das englische Infinitiv eingeben';}
-  else if(step===1){deWordEl.textContent=v.inf+' — '+v.de;promptTextEl.textContent=(mode==='part')?'Gib das Past Participle an':'Gib das Simple Past an';}
-  else if(step===2){deWordEl.textContent=v.inf+' — '+v.de;promptTextEl.textContent='Gib das Past Participle an';}
-  answerInput.value='';answerInput.focus();
-  document.getElementById('progress')?.remove();
-  const progress=document.createElement('div');
-  progress.id='progress';
-  progress.style.textAlign='center';
-  progress.style.color='#94a3b8';
-  progress.style.marginTop='8px';
-  progress.textContent=`${currentIndex+1} / ${quiz.length} (Schritt ${step+1})`;
-  document.querySelector('.card').appendChild(progress);
+  const v=quiz[currentIndex];
+  if(step===0){deWordEl.textContent=v.de;promptTextEl.textContent='Bitte das englische Infinitiv eingeben';}
+  else if(step===1){deWordEl.textContent=v.inf+' — '+v.de;promptTextEl.textContent=(mode==='part')?'Gib das Past Participle an':'Gib das Simple Past an';}
+  else if(step===2){deWordEl.textContent=v.inf+' — '+v.de;promptTextEl.textContent='Gib das Past Participle an';}
+  answerInput.value='';answerInput.focus();
+  document.getElementById('progress')?.remove();
+  const progress=document.createElement('div');
+  progress.id='progress';
+  progress.style.textAlign='center';
+  progress.style.color='#94a3b8';
+  progress.style.marginTop='8px';
+  progress.textContent=`${currentIndex+1} / ${quiz.length} (Schritt ${step+1})`;
+  document.querySelector('.card').appendChild(progress);
 }
 
 // === Antwort prüfen ===
 function checkAnswer(){
-  const v=quiz[currentIndex];
-  const user=normalize(answerInput.value);
-  let correctAnswers=[], field='';
-  if(step===0){correctAnswers=[normalize(v.inf)];field='inf';}
-  else if(step===1){
-    if(mode==='past'){correctAnswers=v.past.split('/').map(x=>normalize(x));field='past';}
-    else if(mode==='part'){correctAnswers=v.part.split('/').map(x=>normalize(x));field='part';}
-    else if(mode==='both'){correctAnswers=v.past.split('/').map(x=>normalize(x));field='past';}
-  } else if(step===2){correctAnswers=v.part.split('/').map(x=>normalize(x));field='part';}
+  const v=quiz[currentIndex];
+  const user=normalize(answerInput.value);
+  let correctAnswers=[], field='';
+  if(step===0){correctAnswers=[normalize(v.inf)];field='inf';}
+  else if(step===1){
+    // NEU: Erzwinge exakte Eingabe (inkl. Schrägstrich, wenn vorhanden)
+    if(mode==='past'){correctAnswers=[normalize(v.past)];field='past';}
+    else if(mode==='part'){correctAnswers=[normalize(v.part)];field='part';}
+    else if(mode==='both'){correctAnswers=[normalize(v.past)];field='past';}
+  } else if(step===2){correctAnswers=[normalize(v.part)];field='part';}
 
-  let isCorrect=correctAnswers.includes(user);
-  // Sonderfall: nur "was/were" akzeptieren
-  if(v.inf==="be" && field==="past" && user==="was/were"){isCorrect=true;}
-  if(v.inf==="be" && field==="past" && (user==="was" || user==="were")){isCorrect=false;}
+  let isCorrect=correctAnswers.includes(user);
+  
+  // Alter Spezialfall für "be" entfernt, da jetzt durch die generische Logik abgedeckt.
+  // Die korrekte Eingabe für "be" ist nun zwingend "was/were" (oder "Was/Were" etc. durch normalize).
 
-  answered++;answeredCountEl.textContent=answered;
-  let result=results.find(r=>r.de===v.de);
-  if(!result){result={...v,wrongInf:false,wrongPast:false,wrongPart:false,userInf:'',userPast:'',userPart:''};results.push(result);}
-  if(isCorrect){correct++;correctCountEl.textContent=correct;feedbackEl.innerHTML='<span class="correct">Richtig ✓</span>';}
-  else{wrong++;wrongCountEl.textContent=wrong;feedbackEl.innerHTML=`<span class="wrong">Falsch — </span><span class="right-answer">${correctAnswers.join(' / ')}</span>`;
-    if(field==='inf'){result.wrongInf=true;result.userInf=answerInput.value;}
-    if(field==='past'){result.wrongPast=true;result.userPast=answerInput.value;}
-    if(field==='part'){result.wrongPart=true;result.userPart=answerInput.value;}
-  }
-  okBtn.disabled=true;answerInput.disabled=true;
-  setTimeout(()=>{
-    if(step===0){step=1;}
-    else if(step===1){if(mode==='both')step=2;else{step=0;currentIndex++;}}
-    else if(step===2){step=0;currentIndex++;}
-    okBtn.disabled=false;answerInput.disabled=false;feedbackEl.textContent='';
-    if(currentIndex<quiz.length)renderCurrent();else showSummary();
-  },1000);
+  answered++;answeredCountEl.textContent=answered;
+  let result=results.find(r=>r.de===v.de);
+  if(!result){result={...v,wrongInf:false,wrongPast:false,wrongPart:false,userInf:'',userPast:'',userPart:''};results.push(result);}
+  if(isCorrect){correct++;correctCountEl.textContent=correct;feedbackEl.innerHTML='<span class="correct">Richtig ✓</span>';}
+  else{
+    wrong++;wrongCountEl.textContent=wrong;
+    // NEU: Zeige die korrekte Antwort direkt aus dem Verb-Objekt an (inkl. Schrägstrich).
+    feedbackEl.innerHTML=`<span class="wrong">Falsch — </span><span class="right-answer">${v[field]}</span>`;
+    if(field==='inf'){result.wrongInf=true;result.userInf=answerInput.value;}
+    if(field==='past'){result.wrongPast=true;result.userPast=answerInput.value;}
+    if(field==='part'){result.wrongPart=true;result.userPart=answerInput.value;}
+  }
+  okBtn.disabled=true;answerInput.disabled=true;
+  setTimeout(()=>{
+    if(step===0){step=1;}
+    else if(step===1){if(mode==='both')step=2;else{step=0;currentIndex++;}}
+    else if(step===2){step=0;currentIndex++;}
+    okBtn.disabled=false;answerInput.disabled=false;feedbackEl.textContent='';
+    if(currentIndex<quiz.length)renderCurrent();else showSummary();
+  },1000);
 }
 
 // === Zusammenfassung anzeigen ===
 function showSummary(){
-  const total=answered||1;
-  const percent=Math.round((correct/total)*100);
-  let comment='';
-  if(percent>=90)comment='🌟 Fantastisch! Du beherrschst diese Verben richtig gut!';
-  else if(percent>=70)comment='💪 Sehr gut! Nur ein paar kleine Fehler.';
-  else if(percent>=50)comment='🙂 Gut gemacht! Ein bisschen Übung noch.';
-  else comment='🔁 Nicht schlimm – weiter üben, du schaffst das!';
+  const total=answered||1;
+  const percent=Math.round((correct/total)*100);
+  let comment='';
+  if(percent>=90)comment='🌟 Fantastisch! Du beherrschst diese Verben richtig gut!';
+  else if(percent>=70)comment='💪 Sehr gut! Nur ein paar kleine Fehler.';
+  else if(percent>=50)comment='🙂 Gut gemacht! Ein bisschen Übung noch.';
+  else comment='🔁 Nicht schlimm – weiter üben, du schaffst das!';
 
-  const roundSection=document.createElement('div');
-  roundSection.className="round-summary";
-  roundSection.innerHTML=`
-    <h3>Ergebnis der ${roundNumber}. Runde</h3>
-    <p>${correct} / ${total} korrekt (${percent}%)</p>
-    <p>${comment}</p>
-  `;
+  const roundSection=document.createElement('div');
+  roundSection.className="round-summary";
+  roundSection.innerHTML=`
+    <h3>Ergebnis der ${roundNumber}. Runde</h3>
+    <p>${correct} / ${total} korrekt (${percent}%)</p>
+    <p>${comment}</p>
+  `;
 
-  let tableHTML=`<table><thead><tr><th>de</th><th>inf</th><th>past</th><th>part</th><th>deine Antwort(en)</th></tr></thead><tbody>`;
-  for(const v of quiz){
-    const r=results.find(x=>x.de===v.de)||{};
-    tableHTML+=`<tr>
-      <td>${v.de}</td>
-      <td class="${r.wrongInf?'wrong-cell':''}">${v.inf}</td>
-      <td class="${r.wrongPast?'wrong-cell':''}">${v.past}</td>
-      <td class="${r.wrongPart?'wrong-cell':''}">${v.part}</td>
-      <td class="user-answer">${[r.userInf,r.userPast,r.userPart].filter(x=>x).length>0?[r.userInf,r.userPast,r.userPart].filter(x=>x).join(', '):'—'}</td>
-    </tr>`;
-  }
-  tableHTML+='</tbody></table>';
-  roundSection.innerHTML+=tableHTML;
+  let tableHTML=`<table><thead><tr><th>de</th><th>inf</th><th>past</th><th>part</th><th>deine Antwort(en)</th></tr></thead><tbody>`;
+  for(const v of quiz){
+    const r=results.find(x=>x.de===v.de)||{};
+    tableHTML+=`<tr>
+      <td>${v.de}</td>
+      <td class="${r.wrongInf?'wrong-cell':''}">${v.inf}</td>
+      <td class="${r.wrongPast?'wrong-cell':''}">${v.past}</td>
+      <td class="${r.wrongPart?'wrong-cell':''}">${v.part}</td>
+      <td class="user-answer">${[r.userInf,r.userPast,r.userPart].filter(x=>x).length>0?[r.userInf,r.userPast,r.userPart].filter(x=>x).join(', '):'—'}</td>
+    </tr>`;
+  }
+  tableHTML+='</tbody></table>';
+  roundSection.innerHTML+=tableHTML;
 
-  const stillWrong=results.filter(r=>r.wrongInf||r.wrongPast||r.wrongPart);
-  if(stillWrong.length>0){remainingVerbs=stillWrong.map(r=>({de:r.de,inf:r.inf,past:r.past,part:r.part}));}
-  else{remainingVerbs=[...verbs];roundSection.innerHTML+="<p>🎉 Du hast jetzt alle Verben einmal richtig beantwortet!</p>";}
+  const stillWrong=results.filter(r=>r.wrongInf||r.wrongPast||r.wrongPart);
+  if(stillWrong.length>0){remainingVerbs=stillWrong.map(r=>({de:r.de,inf:r.inf,past:r.past,part:r.part}));}
+  else{remainingVerbs=[...verbs];roundSection.innerHTML+="<p>🎉 Du hast jetzt alle Verben einmal richtig beantwortet!</p>";}
 
-  summaryCard.style.display='block';
-  // neue Runde oben einfügen
-  summaryCard.insertBefore(roundSection, summaryCard.children[1]);
+  summaryCard.style.display='block';
+  // neue Runde oben einfügen
+  summaryCard.insertBefore(roundSection, summaryCard.children[1]);
 
-  // Buttons nur einmalig unten anzeigen
-  if(!document.getElementById("summaryButtons")){
-    const btnContainer=document.createElement("div");
-    btnContainer.id="summaryButtons";
-    btnContainer.style.marginTop="12px";
-    btnContainer.innerHTML=`
-      <button id="restartBtn2">Neue Runde starten</button>
-      <button id="repeatBtn2" style="display:${stillWrong.length>0?'inline-block':'none'};margin-left:8px;">Falsche wiederholen</button>
-    `;
-    summaryCard.appendChild(btnContainer);
-    document.getElementById("restartBtn2").addEventListener("click",()=>{summaryCard.style.display='none';startQuiz();});
-    document.getElementById("repeatBtn2").addEventListener("click",()=>{summaryCard.style.display='none';startQuiz(remainingVerbs);});
-  }else{
-    document.getElementById("repeatBtn2").style.display=stillWrong.length>0?'inline-block':'none';
-  }
+  // Buttons nur einmalig unten anzeigen
+  if(!document.getElementById("summaryButtons")){
+    const btnContainer=document.createElement("div");
+    btnContainer.id="summaryButtons";
+    btnContainer.style.marginTop="12px";
+    btnContainer.innerHTML=`
+      <button id="restartBtn2">Neue Runde starten</button>
+      <button id="repeatBtn2" style="display:${stillWrong.length>0?'inline-block':'none'};margin-left:8px;">Falsche wiederholen</button>
+    `;
+    summaryCard.appendChild(btnContainer);
+    document.getElementById("restartBtn2").addEventListener("click",()=>{remainingVerbs=[...verbs];summaryCard.style.display='none';startQuiz();});
+    document.getElementById("repeatBtn2").addEventListener("click",()=>{summaryCard.style.display='none';startQuiz(remainingVerbs);});
+  }else{
+    document.getElementById("repeatBtn2").style.display=stillWrong.length>0?'inline-block':'none';
+  }
 
-  deWordEl.textContent='—';promptTextEl.textContent='';answerInput.value='';answerInput.disabled=true;okBtn.disabled=true;
-  roundNumber++;
+  deWordEl.textContent='—';promptTextEl.textContent='';answerInput.value='';answerInput.disabled=true;okBtn.disabled=true;
+  roundNumber++;
 }
 
 // === Event-Listener ===
